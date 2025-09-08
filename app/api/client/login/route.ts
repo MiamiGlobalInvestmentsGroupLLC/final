@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 function enc(s: string) { return new TextEncoder().encode(s); }
 
-async function hmacSign(secret: string, data: string) {
+async function sign(secret: string, data: string) {
   const key = await crypto.subtle.importKey(
     "raw",
     enc(secret),
@@ -21,25 +21,25 @@ export async function POST(req: Request) {
   const email = (body?.email ?? "").trim();
   const password = body?.password ?? "";
 
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "";
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
-  const ADMIN_SECRET = process.env.ADMIN_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
+  const CLIENT_EMAIL = process.env.CLIENT_EMAIL ?? "";
+  const CLIENT_PASSWORD = process.env.CLIENT_PASSWORD ?? "";
+  const CLIENT_SECRET = process.env.CLIENT_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
 
-  if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_SECRET) {
-    return NextResponse.json({ message: "Server auth not configured." }, { status: 500 });
+  if (!CLIENT_EMAIL || !CLIENT_PASSWORD || !CLIENT_SECRET) {
+    return NextResponse.json({ message: "Client auth not configured." }, { status: 500 });
   }
 
-  if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) {
+  if (email.toLowerCase() !== CLIENT_EMAIL.toLowerCase() || password !== CLIENT_PASSWORD) {
     return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
   }
 
-  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7; // 7 days
-  const payload = `admin|${email}|${exp}`;
-  const sig = await hmacSign(ADMIN_SECRET, payload);
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+  const payload = `client|${email}|${exp}`;
+  const sig = await sign(CLIENT_SECRET, payload);
   const token = `${payload}.${sig}`;
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("admin_session", token, {
+  res.cookies.set("client_session", token, {
     httpOnly: true,
     sameSite: "lax",
     secure: true,

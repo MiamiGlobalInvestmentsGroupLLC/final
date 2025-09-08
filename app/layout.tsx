@@ -1,9 +1,9 @@
-import "./globals.css";
+﻿import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "MGI Chatbot SaaS",
-  description: "Miami Global Investments Group — Chatbot SaaS Platform",
+  description: "Miami Global Investments Group â€” Chatbot SaaS Platform",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
